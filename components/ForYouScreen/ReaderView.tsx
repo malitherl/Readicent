@@ -1,40 +1,43 @@
-import { Dimensions, View, Text, StyleSheet, FlatList } from 'react-native'
-import { FontAwesome } from '@expo/vector-icons';
-import  Like from './Like';
+import { Dimensions, Text, View, StyleSheet, FlatList } from 'react-native'
+import { Divider } from '@rneui/themed';
+import { useUser } from '../UserContext';
+import { ButtonPanel } from './ButtonPanel';
+import { usePreferences } from '../../hooks/usePreferences';
 import ParagraphView from './ParagraphView';
 
-export default function ReaderView( props: any) {
-    const Separator = () => <View style={styles.separator}/>
+/**
+ * TODO: create the usePreferences hook to pull data from the database 
+ * based off metadata, and in doing so, we have a swathe of information 
+ * to choose from. Mainly, this would also help the user navigate books.  
+ */
+
+
+export default function ReaderView() {
+    const {user} = useUser();
+    const preferences = usePreferences(user!);
+
     const renderText = ({item, index} : any, props: any) => {
         return (
           <View style={styles.snippet}>
-               <ParagraphView paragraphText={item.paragraph}/> 
-              
-              <View>
-                <View style={styles.panel}>
-                  <Like snippet= {item} />
-                  <FontAwesome
-                    style={{ alignSelf: 'center' }}
-                    name="commenting"
-                    size={35}
-                    color="#fff"
-                    />
-                  <FontAwesome
-                    style={{ alignSelf: 'center' }}
-                    name="user"
-                    size={35}
-                    color="#fff"         
-                    />  
-                  </View>
-                </View>             
-            <Separator />
+               <ParagraphView/> 
+               <ButtonPanel />
+            <Divider />
         </View>
         )
     }
-          
+    
+    const Preference = () => {
+
+      return preferences.map(p => <Text>{p}</Text>)
+      
+    }
+
+
     return(
-        <View style= {styles.snippetList} key={props.id}>
-          <FlatList pagingEnabled={true} data={props.snippets} renderItem={(item) => renderText(item, props)}/>
+        <View style= {styles.snippetList}>
+          {//<FlatList pagingEnabled={true} data={preferences} renderItem={(item) => renderText(item, props)}/>
+            
+        } 
         </View>
     )
 }
