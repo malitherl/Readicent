@@ -1,50 +1,11 @@
-import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, Dimensions } from 'react-native'
 import { Text } from '@rneui/base'
 import { Styles } from '../../lib/constants'
-import { useUser } from '../UserContext'
 /** URL polyfill. Required for Supabase queries to work in React Native. */
 import 'react-native-url-polyfill/auto'
-import Like from './Like'
 import ReaderView from './ReaderView'
-import backendService from '../../services/backend'
 
-
-type Paragraph = {
-  num: number 
-  paragraph: string
-}
- 
-type Snippet = {
-  id: number
-  created_at: Date
-  isbn: string
-  snippet: string
-}
-
-export default function TodoList({navigation} : any) {
-  const { user } = useUser()
-  const indicesForBooks = [121, 33, 26]
-  const [snippets, setSnippet] = useState<Array<Snippet>>([])
-  const [paragraphs, setParagraphs] = useState<Array<Paragraph>>([]);
-  const [texts, setTexts] = useState<Array<String>>([])
-   useEffect(() => {
-     setParagraphs([])
-     indicesForBooks.forEach(i =>  
-        backendService
-        .fetchParagraphs(i)
-        .then(p => {
-            setParagraphs(prevState => prevState.concat(p!))
-          })
-        )
-   }, [])
-
-   const handleLike = (id: number) => {
-      backendService
-      .isLiked(id, user!)
-      .then(like => like)
-   }
-
+export default function ForYou({navigation} : any) {
   return (
     <View>
         <View style={styles.container}>
@@ -56,8 +17,8 @@ export default function TodoList({navigation} : any) {
           </View>
           <View 
              style={styles.snippetList}
-            > 
-            <ReaderView handleLike={handleLike} snippets={paragraphs} isLiked={true}/>
+            >
+            <ReaderView/>
           </View>
         </View>
       </View>

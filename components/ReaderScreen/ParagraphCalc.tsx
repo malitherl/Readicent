@@ -1,79 +1,75 @@
-import { useEffect, useState } from "react";
-import { StyleSheet, View, Alert, Dimensions, FlatList } from "react-native";
-import { supabase } from "../../lib/initSupabase";
+import { StyleSheet, View, Dimensions, FlatList } from "react-native";
 import { Text } from '@rneui/themed';
+import { Button } from "@rneui/base";
+import { useParagraphs } from '../../hooks/useParagraphs';
+import { useReaderInfo } from "../../hooks/useReaderInfo";
+import { useUser } from "../UserContext";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { LinearProgress } from "@rneui/base";
+import { useProgress } from "../../hooks/useProgress";
 
 export type Paragraph = {
     num: number 
     paragraph: string
     paragraph_length: number
   }
+//this must be a child belonging to another Screen, for better naming conventions. 
+export const ParagraphCalc = ({route, navigation} : any) => {
+    const {user} = useUser()
 
-export const ParagraphCalc = () => {
+    //progress: this comes from the goal column 
+    const dailyGoal = useProgress(user!) || 0;
+    //RecentBooks: this would arrive as a prop from that component
+    const {book_num} = route?.params || 0; 
 
-    /**
-     * Create a function that will find the average length of a book's paragraphs 
-     * and we can do some of the same calculations under the hood again 
-     */
+    const {updateBookmark, getSingleProgress} = useReaderInfo(user!);
+    const start = getSingleProgress(book_num)?.progress || 0; 
+    const {displayedPara} = useParagraphs(book_num, dailyGoal, start);
+  
+    const [paragraphsRead, setParagraphsRead] = useState(start);
+    const [paragraphPerc, setParagraphPerc] = useState(start/displayedPara.length);
 
-    const start= 0;
-    const goal = 40; 
-    const book_num = 33; 
-    const [paragraphs, setParagraphs] = useState<Array<Paragraph>>([])
-    const [displayedPara, setDisplayedPara] = useState<Array<Paragraph>>([]); 
-    const [numPara, setNumPara] = useState<number>(0);
+    useEffect(() => {    
+      const p = (paragraphsRead / displayedPara.length);
+      setParagraphPerc(p);
+    }, [paragraphsRead])
 
-    useEffect(() => {
-        if(book_num){
-            getParagraphs()
-            console.log(1)
-        }
-    }, [])
 
-    useEffect(() => {
-        const avg= Math.round(paragraphs.map(p => p.paragraph)
-        .map(para => para.split(' ').length)
-        .reduce((a, b) => a +b, 0) / paragraphs.length)
-        const num = Math.round((250*goal) / avg); 
-        setNumPara(num);
-        console.log(2)
-    }, [paragraphs]);
+    //https://reactnavigation.org/docs/preventing-going-back 
+    //we can use this to save progress if the user tries leaving the screen early.
 
-    useEffect(() => {
-        const displayed = paragraphs.slice(start, numPara);
-        setDisplayedPara(displayed);
-        console.log(3)
-    }, [numPara])
-
-    async function getParagraphs() {
-        try {
-              let {data, error} = await supabase
-              .from('paragraphs')
-              .select('*')
-              .eq('num', book_num)
-              if(error) {
-                  throw error 
-              } 
-              if (data) {
-                setParagraphs(data)
-              }   
-        } catch (error) {
-            if (error instanceof Error) {
-                Alert.alert(error.message)
-            }
-        }
-    }
-
-    const renderText = ({item, index} : any) => {
+    const renderText = ({item} : any) => {
         return (
           <View style={styles.snippet}>
                <Text style={styles.para}>{item.paragraph}</Text> 
           </View>
         )
     }
+
+    const handleFinish = () => {
+      updateBookmark(book_num, paragraphsRead, paragraphPerc);
+    }
+    const viewabilityConfig = {
+      viewAreaCoveragePercentThreshold: 50,
+    }
+
+    const onViewableItemsChanged = useCallback((viewableItem: any) => {
+      if(viewableItem.viewableItems[0].index){
+        setParagraphsRead(viewableItem.viewableItems[0].index);
+      }
+    }, []);
+    
+    const viewabilityConfigCallbackPairs = useRef([{ viewabilityConfig, onViewableItemsChanged }])
+    
+
     return (
         <View style={styles.snippetList}>
-            <FlatList pagingEnabled={true} data={displayedPara} renderItem={(item) => renderText(item)}/>
+            <FlatList pagingEnabled={true} 
+                      viewabilityConfig={viewabilityConfig} 
+                      viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+                      data={displayedPara} renderItem={renderText}/>
+            <LinearProgress value={paragraphPerc} variant={"determinate"} trackColor={'lightgreen'} color={'green'}  />
+            <Button onPress={handleFinish}>Save Progress</Button>
         </View>
     )
 }
@@ -92,6 +88,7 @@ const styles = StyleSheet.create({
         height: Dimensions.get("window").height,
         justifyContent: 'center', 
         alignItems: "center",
+        paddingTop: 16,
       },
       viewerText: {
         fontSize: 16,

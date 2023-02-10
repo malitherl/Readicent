@@ -7,6 +7,9 @@ export default function Like ( {snippet}: any) {
     const [id, setId] = useState(0);
     const { user } = useUser();
     const [liked, setLiked] = useState(false)
+
+
+    //more hooks useLike() needed here 
     useEffect(() => {
         setId(snippet.num)
         backendservice

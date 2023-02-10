@@ -8,7 +8,6 @@ export type Like = {
     user_id: string
   }
 
-
   export type Paragraph = {
     num: number 
     paragraph: string

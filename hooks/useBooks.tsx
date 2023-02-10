@@ -1,7 +1,3 @@
-//we need to take our functions that gather this information from the database and put them in here. 
-//this will allow us to use this information throughout the app 
-//but also reduces the burden of having to do constant API calls 
-
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
@@ -23,8 +19,6 @@ export const useBooks = (user: User, count?: number) => {
             getBook(ids)
          }
     }, [ids])
-
-
 
     async function getIds () {
       try {
@@ -62,32 +56,6 @@ export const useBooks = (user: User, count?: number) => {
           setLoading(false)  
       }
   }
-
-  async function getReaderData (num: number) {
-    try {
-        setLoading(true)
-        if(!user) throw new Error('No valid user!');
-        
-          let {data, error} = await supabase
-          .from('reader_data')
-          .select('*')
-          .eq('num', num)
-          if(error) {
-              throw error 
-          } 
-          if (data) {
-
-          }   
-          
-    } catch (error) {
-        if (error instanceof Error) {
-            Alert.alert(error.message)
-        }
-    } finally {
-        setLoading(false)  
-    }
-}
-
 
 
   async function getBook (ids: number[]) {

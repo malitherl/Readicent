@@ -3,6 +3,7 @@ import {Button, Text} from '@rneui/themed';
 import  Separator  from '../Separator';
 
 export default function Explore({navigation} : any) {
+    //TODO: what if this could have a search function as well?
     return (
         <View style={styles.card}>
             <Text h2={true}>Explore</Text>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Text, Card, Button } from '@rneui/base'
+import { Text, Card, Button,LinearProgress } from '@rneui/base'
 import { StyleSheet, View } from 'react-native'
 import { Styles } from '../../lib/constants'
 import { useUser } from '../UserContext'
@@ -8,11 +8,13 @@ import { Book } from '../../services/backend'
 import { Reader, useReaderInfo } from '../../hooks/useReaderInfo'
 
 export default function RecentBooks ({navigation} : any) {
+
   const { user } = useUser();  
   const books = useBooks(user!);
-  const reader_data = useReaderInfo(user!);
+  const {bookProgress} = useReaderInfo(user!);
   const [recentBooks, setRecentBooks] = useState<Array<Book>>([]);
   const [recentProgress, setRecentProgress] = useState<Array<Reader>>([]);
+
   useEffect(() => {
       if(books && books.length > 0) {
           setRecentBooks(books)
@@ -21,14 +23,16 @@ export default function RecentBooks ({navigation} : any) {
   }, [books])
 
   useEffect(() => {
-    if(reader_data && reader_data.length > 0) {
-      setRecentProgress(reader_data);
+    if(bookProgress && bookProgress.length > 0) {
+      setRecentProgress(bookProgress);
     }
-  }, [reader_data])
+  }, [bookProgress])
 
   const Progress = (props : any) => {
     const p = recentProgress.find(p => p.id === props.id)
-    return <Text>{p!.progress / props.length}</Text>
+    return <Text>{Math.round(p!.progress) * 100}%
+             <LinearProgress value={p!.progress} variant={"determinate"} color={'primary'}  />
+            </Text>
   }
 
   const cardConstructor= () => {
@@ -37,7 +41,13 @@ export default function RecentBooks ({navigation} : any) {
               <Card.Title>{book.title} by {book.author}</Card.Title>
                 <Card.Divider/>
                 <Progress id={book.num} length= {book.length}/>
-                <Button>Continue</Button>
+                <Button title={'Continue?'}
+                        onPress={() => {
+                          navigation.push('Paragraphs', {
+                            book_num: book.num})
+                        }}
+                />
+                
             </Card> 
           )
   }
@@ -74,6 +84,5 @@ const styles = StyleSheet.create({
       justifyContent: "space-between",
       alignItems: "center",
       fontSize: "1rem"
-  
     }
 })

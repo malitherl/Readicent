@@ -7,7 +7,7 @@ export default function ActivityFeed({navigation} : any) {
         <View style={styles.activityFeed}>
         <View style={styles.card}>
           <Text h2={true}>Recent Books</Text>
-          <RecentActivity />
+          <RecentActivity navigation= {navigation}/>
           <Button
             title={"Pick up where you left off"}
             titleStyle={{ fontWeight: "300", fontSize: 18 }}

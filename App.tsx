@@ -8,7 +8,7 @@ import Auth from './components/AuthScreen/Auth'
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Home from './components/HomeScreen/Home'
-import TodoList from './components/ForYouScreen/ForYou';
+import ForYou from './components/ForYouScreen/ForYou';
 import RecentBooks from './components/RecentsScreen/RecentBooks';
 import { ParagraphCalc } from './components/ReaderScreen/ParagraphCalc';
 
@@ -49,7 +49,7 @@ const Container = ({navigation} : any) => {
 
 const Reader = ({navigation} : any) => {
   
-  return <TodoList navigation={navigation}/>
+  return <ForYou navigation={navigation}/>
 }
 
 
@@ -80,17 +80,9 @@ const Current = ({navigation} : any) => {
 )
 }
 
-const Para = ({navigation} : any) => {
-  return (
-    <View>
-      <ParagraphCalc />
-    </View>
-  )
-}
-
 
 const Stack = createNativeStackNavigator();
-
+//TODO: fix the naming conventions 
 export default function App() {
   return (
     <NavigationContainer>
@@ -99,7 +91,8 @@ export default function App() {
             <Stack.Screen name="Home" component={Container} />
             <Stack.Screen name="Snippets" component={Content}/>
             <Stack.Screen name="CurrentBook" component={Current} />
-            <Stack.Screen name="RecentBooks" component={Para}/>
+            <Stack.Screen name="RecentBooks" component={RecentBooks}/>
+            <Stack.Screen name="Paragraphs" component={ParagraphCalc}/>
           </Stack.Navigator>
       </UserContextProvider>
     </NavigationContainer>

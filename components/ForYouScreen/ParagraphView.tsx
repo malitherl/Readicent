@@ -3,16 +3,16 @@ import { Text } from "@rneui/themed"
 
 export default function ParagraphView(props: any) {
     //Just so the amount of words don't overflow the screen 
-    
-    const wordCount = () => {
+    //this could also be refactored into the paragraphview screen
+    const WordCount = () => {
         const wordArray = props.paragraphText.split(' ')
-        return wordArray.slice(0, 100).join(' ').trim() + '...'
+        return <Text>{wordArray.slice(0, 100).join(' ').trim() + '...'}</Text>
     }
 
     return (
         <View>       
             <Text style={styles.para}>
-                {wordCount()}
+                <WordCount/>
             </Text>
         </View>    
     )
