@@ -13,11 +13,14 @@ export const useLikes = (user: User) => {
     const [loading, setLoading] = useState(true);
     const [likes, setLikes] = useState<Array<Like>>([]);
     useEffect(() => {
-        if(user && loading) {
+        try {  
+          if(user) {
             fetchLikes(user);
+          }
+        } catch (err) {
+          setLoading(false);
         }
-    }, [])
-
+    }, [user?.id]);
 
     const fetchLikes = async (user: User) => {
         const { data: userLikes, error } = await supabase
@@ -29,6 +32,7 @@ export const useLikes = (user: User) => {
         } else {
             console.log('fetching')
             setLikes(userLikes)
+            setLoading(false);
         }
     }
 

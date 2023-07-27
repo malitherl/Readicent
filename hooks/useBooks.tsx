@@ -11,7 +11,7 @@ export const useBooks = (user: User, count?: number) => {
     const [loading, setLoading] = useState(true);    
     useEffect(() => {
         if (user) {
-            getIds()      
+            getIds()       
         } 
     }, [])
     useEffect(()=> {
@@ -19,7 +19,6 @@ export const useBooks = (user: User, count?: number) => {
             getBook(ids)
          }
     }, [ids])
-
     async function getIds () {
       try {
           setLoading(true)

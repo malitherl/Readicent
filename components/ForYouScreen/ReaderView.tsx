@@ -1,10 +1,14 @@
-import { Dimensions, Text, View, StyleSheet, FlatList } from 'react-native'
+import { Dimensions, FlatList, View, StyleSheet } from 'react-native'
 import { Divider } from '@rneui/themed';
 import { useUser } from '../UserContext';
 import { ButtonPanel } from './ButtonPanel';
-import { usePreferences } from '../../hooks/usePreferences';
 import ParagraphView from './ParagraphView';
+import { useEffect, useMemo, useState } from 'react';
+import { supabase } from '../../lib/initSupabase';
+import { useLikes } from '../../hooks/useLikes';
+import { usePreferences } from '../../hooks/usePreferences';
 
+import { Paragraph } from '../ReaderScreen/ParagraphCalc'
 /**
  * TODO: create the usePreferences hook to pull data from the database 
  * based off metadata, and in doing so, we have a swathe of information 
@@ -14,28 +18,22 @@ import ParagraphView from './ParagraphView';
 
 export default function ReaderView() {
     const {user} = useUser();
-    const preferences = usePreferences(user!);
-
-    const renderText = ({item, index} : any, props: any) => {
-        return (
-          <View style={styles.snippet}>
-               <ParagraphView/> 
-               <ButtonPanel />
-            <Divider />
-        </View>
-        )
-    }
-    
-    const Preference = () => {
-
-      return preferences.map(p => <Text>{p}</Text>)
-      
+    const {likes} = useLikes(user!);
+    const {suggestedReading} = usePreferences(likes);
+   
+    const renderItem = ({item} : any) => {
+      console.log('rendering');
+      return (
+        <ParagraphView {...item} />
+      )
     }
 
 
     return(
         <View style= {styles.snippetList}>
-          {//<FlatList pagingEnabled={true} data={preferences} renderItem={(item) => renderText(item, props)}/>
+          {<FlatList pagingEnabled={true} 
+                     data={suggestedReading} 
+                     renderItem={renderItem}/>
             
         } 
         </View>

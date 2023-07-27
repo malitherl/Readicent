@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { LinearProgress } from "@rneui/base";
 import { useProgress } from "../../hooks/useProgress";
 
-export type Paragraph = {
+export interface Paragraph {
     num: number 
     paragraph: string
     paragraph_length: number
@@ -40,7 +40,7 @@ export const ParagraphCalc = ({route, navigation} : any) => {
 
     const renderText = ({item} : any) => {
         return (
-          <View style={styles.snippet}>
+          <View >
                <Text style={styles.para}>{item.paragraph}</Text> 
           </View>
         )
@@ -60,14 +60,14 @@ export const ParagraphCalc = ({route, navigation} : any) => {
     }, []);
     
     const viewabilityConfigCallbackPairs = useRef([{ viewabilityConfig, onViewableItemsChanged }])
-    
 
     return (
         <View style={styles.snippetList}>
-            <FlatList pagingEnabled={true} 
-                      viewabilityConfig={viewabilityConfig} 
-                      viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
-                      data={displayedPara} renderItem={renderText}/>
+            <FlatList 
+                pagingEnabled={true} 
+                viewabilityConfig={viewabilityConfig} 
+                viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+                data={displayedPara} renderItem={renderText}/>
             <LinearProgress value={paragraphPerc} variant={"determinate"} trackColor={'lightgreen'} color={'green'}  />
             <Button onPress={handleFinish}>Save Progress</Button>
         </View>
@@ -76,11 +76,11 @@ export const ParagraphCalc = ({route, navigation} : any) => {
 
 const styles = StyleSheet.create({
     para: {
-        letterSpacing: 2,
+        letterSpacing: 1,
     },
     snippet: {
         borderBottomColor: "black",
-        padding: 12, 
+        padding: 6, 
         margin: 6
       },
     snippetList: {
@@ -88,10 +88,10 @@ const styles = StyleSheet.create({
         height: Dimensions.get("window").height,
         justifyContent: 'center', 
         alignItems: "center",
-        paddingTop: 16,
+        paddingTop: 5,
       },
       viewerText: {
         fontSize: 16,
-        lineHeight: 25,
+        lineHeight: 10,
       },
 })

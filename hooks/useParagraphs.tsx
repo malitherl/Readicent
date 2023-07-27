@@ -18,7 +18,9 @@ export const useParagraphs = (book_num?: number, goal?: number, start?: number) 
   * start: to ensure that the user has the best experience, we store and cache where they left off in their reading,
   * daily goal complete or not. 
   */
- const [paragraphs, setParagraphs] = useState<Array<Paragraph>>([])
+ const [paragraphs, setParagraphs] = useState<Array<Paragraph>>([]);
+ //To make these paragraphs functional, I will have to take the content, and split by \n characters. 
+ //This will ensure the paragraphs render properly on the screen. 
  const [displayedPara, setDisplayedPara] = useState<Array<Paragraph>>([]);
  const [single, setSingle] = useState<Array<Paragraph>>([]); 
  const [numPara, setNumPara] = useState<number>(0);
@@ -39,7 +41,10 @@ export const useParagraphs = (book_num?: number, goal?: number, start?: number) 
  * 
  * Next thing we do is calculate the word count of 
  * the user's daily goal. The rough average for a 
- * page's word count is around 250 words.  
+ * page's word count is around 250 words. 250 words 
+ * makes for about 1250 characters. This will give us a
+ * reasonable number to splice from book[x].content with 
+ * the variable x being the id of the book in the database. 
  * 
  * We multiply by the goal, then divide by the average 
  * word count for each paragraph, to arrive at the needed paragraphs 
@@ -50,6 +55,8 @@ export const useParagraphs = (book_num?: number, goal?: number, start?: number) 
 
  useEffect(() => {
     if(goal){
+        //so, this is  being done by word count and not characters. 
+        //we should probably change this so that this works as intended.
         const avg= Math.round(paragraphs.map(p => p.paragraph)
         .map(para => para.split(' ').length)
         .reduce((a, b) => a +b, 0) / paragraphs.length)
@@ -63,18 +70,32 @@ export const useParagraphs = (book_num?: number, goal?: number, start?: number) 
      setDisplayedPara(displayed);
  }, [numPara])
 
+
+//TO-DO: See if we can't somehow find a way to pull information without using the paragraphs table
+//but rather, we pull from the all_data table, and we see about possibly using that information instead. 
+//it may be more effecient that way? Then, the numbers we save as a user-data can be used to pick up
+//where they last left off in their readings. 
+
+//We can do this by character count now that we can pull the entire book and save into the book hook
+//This will reduce API calls significantly. 
+
+
  async function getParagraphs() {
      try {
            let {data, error} = await supabase
-           .from('paragraphs')
+           .from('all_data')
            .select('*')
            .eq('num', book_num)
+           .limit(1)
+           .single()
            if(error) {
                throw error 
            } 
            if (data) {
-             setParagraphs(data)
-           }   
+            let split_content = data.content.split('\n')
+            let to_paragraphs = split_content.map((para: string ) => ({num: book_num, paragraph: para, paragraph_length: para.length } ))
+            setParagraphs(to_paragraphs)
+        }   
      } catch (error) {
          if (error instanceof Error) {
              Alert.alert(error.message)

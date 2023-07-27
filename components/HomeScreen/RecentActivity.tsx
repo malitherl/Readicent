@@ -11,6 +11,7 @@ export default function RecentActivity (props : any) {
     const { user } = useUser();
     const books = useBooks(user!, 2); 
     const [recentBooks, setRecentBooks] = useState<Array<Book>>([]);
+    
     useEffect(() => {
         if(books && books.length > 0) {
             setRecentBooks(books)
@@ -18,7 +19,9 @@ export default function RecentActivity (props : any) {
     }, [books])
     return (
         <View>
-            {recentBooks.length > 0 ? recentBooks.map((book, index) => <ListItem key={index}><Text>{book.title}</Text></ListItem>) : <Text>Loading...</Text>}
+            {recentBooks.length > 0 ? recentBooks.map((book, index) => 
+                    <ListItem key={index}><Text>{book.title}</Text></ListItem>) 
+                    : <Text>Loading...</Text>}
         </View>
     )
 }

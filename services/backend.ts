@@ -1,11 +1,11 @@
 import { supabase } from '../lib/initSupabase'
 import { User } from '@supabase/supabase-js'
 
-export type Like = {
-    id: number
-    inserted_at: Date
-    snippet_id: number
-    user_id: string
+export interface Like {
+    id: number;
+    inserted_at: Date;
+    snippet_id: number;
+    user_id: string;
   }
 
   export type Paragraph = {
@@ -21,6 +21,7 @@ export type Like = {
     author_birth: string,
     author_death: string, 
     length: number, 
+    content: string,
   }
 
   export type Behavior = {

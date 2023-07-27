@@ -1,27 +1,54 @@
-import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { supabase } from "../lib/initSupabase";
-import { useLikes } from './useLikes'
+import { Like } from "../services/backend";
+import { Paragraph } from "./useParagraphs";
 
-export const usePreferences = (user: User) => {
-    const [loading, setLoading] = useState(true);
-    const [metadata, setMetaData] = useState<Array<String>>([]);
+export const usePreferences = (likes: Like[]) => {
+    const [metadata, setMetaData] = useState<Array<string>>([]);
     const [suggested, setSuggested] = useState<Array<number>>([]);
-    const { likes } = useLikes(user)
+    const [preferences, setPreferences] = useState<Array<Like>>([]);
+    const [likeNumbers, setLikeNumbers] = useState<Array<number>>([]);
+    const [filteredS, setFilteredS] = useState<Array<number>>([]);
+    const [suggestedReading, setSuggestedReading] = useState<Array<Paragraph>>([])
     
     useEffect(() => {
-        if(user && likes) {
-            const likes_id = likes.map(like => like.snippet_id)
-            preferredTopics(likes_id);
-        }
-    }, [])
+        setPreferences(likes);
+        setLikeNumbers(likes.map(l => l.snippet_id));
+    }, [likes.length]);
+    
+    useEffect(() => {
+        const nums = preferences.map( p => p.snippet_id); 
+        preferredTopics(nums);
+    }, [preferences.length])
+    
+    useEffect(() => {
+        //this is processing the strings into a more friendly format 
+        //to feed into request 
+        const genres = metadata.map(val => val.split(' ')).flat(1)
+        .map(entry => entry.toLowerCase())
+        .map(str => str.replace(/^a-zA-Z0-9 ]/g, ''))
+        .filter(s => s !== "--")
+        .filter((item, index, arr) => arr.indexOf(item) === index);
+        fetchSuggested(genres);
+
+    }, [metadata.length]);
 
     useEffect(() => {
-        if(metadata) {
-        }
-    }, [metadata])
+        //Checking again to ensure that duplicated values are not added into the array
+        //this has to happen outside of the fetchSuggested() function because the 
+        //state of 'suggested' has not fully updated to compare values since
+        //the database itself is fetching by arrays and not individual values
+        const s = suggested.filter((item,
+            index, arr) => arr.indexOf(item) === index);
+        setFilteredS(s);
+    }, [suggested.length])
 
+    useEffect(() => {
+        if(filteredS){
+            preferredParagraphs(filteredS);
+        }
+    }, [filteredS.length])
 
     const fetchPreferences = async(num: number) => {
         try {
@@ -33,7 +60,7 @@ export const usePreferences = (user: User) => {
                 throw error 
             } 
             if (preferences) {
-                setMetaData(prev => prev.concat(preferences[0].subject))
+                setMetaData(prev => prev.concat(preferences[0].subject));
             }   
         } catch (error) {
             if (error instanceof Error) {
@@ -41,26 +68,41 @@ export const usePreferences = (user: User) => {
             }
         }
     }
-    //for each we grab a number of nums that we can go to the useparagraphs hook for 
-    const fetchSuggested = async (phrase: string) => {
+
+    const fetchSuggested = async (genres : string[]) => {
         try {
-            const {data: suggested, error} = await supabase
-            .from('all_data')
-            .select('num')
-            .contains("subject", phrase)
-            .range(0, 9)
-            if(error) {
-                throw error
-            } 
-            if (suggested) {
-                setSuggested(prev => prev.concat(suggested[0].subject))
-            }   
+            if(!genres) throw new Error('invalid genres!');
+            for(const g of genres) {
+                const {data: results, error} = await supabase
+                .from('all_data')
+                .select()
+                .textSearch("subject", g, {
+                    config: "english",
+                    })
+                .range(0,3)
+                if(error) {
+                    console.log(error)
+                    throw error
+                } else {
+                    if(results[0]){
+                        setSuggested(prevState => {
+                            for(let i =0; i< results.length; i++) {
+                                //this is checking to see that no duplicates are 
+                                //added to the array
+                                if(likeNumbers.indexOf(results[i].num) === -1) {
+                                    return prevState.concat(results[i].num);
+                                }
+                            }
+                            return prevState;
+                        })
+                    }
+                }   
+            }     
         } catch (error) {
             if (error instanceof Error) {
                 Alert.alert(error.message)
             }
-        }
-        
+        }    
     }
 
 
@@ -70,12 +112,42 @@ export const usePreferences = (user: User) => {
             fetchPreferences(num)
         }
     }
-    const suggestBooks = async (n : Array<number>) => {
-        
+
+    const preferredParagraphs = async(f : Array<number>) => {
+
+        for(const num of f) {
+            const a = Math.round((Math.random() * 100))
+            const b = a+1;
+            getSingleParagraph(a, b, num)
+        }
     }
 
+    
+async function getSingleParagraph(x: number, y: number, book_num: number) {
+    try {
+        let {data, error} = await supabase
+        .from('all_data')
+        .select('content')
+        .eq('num', book_num)
+        if(error) {
+            throw error 
+        } 
+        if (data?.length && data) {
+            const paragraph = { 
+                num: data[0].num,
+                paragraph: data[0].content.slice(0, 700),
+                paragraph_length: data[0].content.length
+            }
+            setSuggestedReading(prevState => prevState.concat(paragraph));
+        }   
+    } catch (error) {
+        if (error instanceof Error) {
+            Alert.alert(error.message)
+        }
+    }
+ }
 
 
 
-    return metadata;
+    return {suggestedReading};
 }
